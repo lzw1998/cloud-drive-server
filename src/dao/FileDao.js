@@ -1,5 +1,5 @@
-import { File } from "./models/file";
-import { toHump } from "../utils/core";
+import { File, UserFile } from "./models/file";
+import { toHump, extractExt, matchFileType } from "../utils/core";
 
 class FileDao {
   // 根据fileHash和fileSize查找文件信息
@@ -13,6 +13,7 @@ class FileDao {
       });
     });
   };
+
   // 添加新文件信息
   addNewFile = ({ fileId, fileHash, fileName, fileSize, contentType, chunkSize, uploadAt, updateAt }) => {
     return new Promise((resolve, reject) => {
@@ -21,6 +22,7 @@ class FileDao {
           _id: fileId,
           file_name: fileName,
           file_hash: fileHash,
+          file_type: extractExt(fileName),
           content_type: contentType,
           chunk_size: chunkSize,
           file_size: fileSize,
@@ -46,6 +48,38 @@ class FileDao {
         }
         resolve(doc);
       });
+    });
+  };
+  addUserFile = ({ fileId, fileName, parentId, userId, type }) => {
+    return new Promise((resolve, reject) => {
+      UserFile.create(
+        {
+          file_id: fileId,
+          type: type ? type : matchFileType(extractExt(fileName)),
+          parent_id: parentId,
+          user_id: userId,
+          is_recycled: false,
+        },
+        (err, doc) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(doc);
+        }
+      );
+    });
+  };
+  getFileList = ({ parentId, userId }) => {
+    return new Promise((resolve, reject) => {
+      UserFile.find({ parent_id: parentId, user_id: userId })
+        .populate({ path: "file" })
+        .exec((err, doc) => {
+          if (err) {
+            reject(err);
+          }
+          console.log(doc);
+          resolve(doc);
+        });
     });
   };
 }

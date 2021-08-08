@@ -30,7 +30,6 @@ class FileService {
       ? await fse.readdir(path.resolve(UPLOAD_CHUNK_DIR, fileHash)) // 返回已上传的切片地址
       : [];
   // 提取后缀名
-  _extractExt = (fileName) => fileName.slice(fileName.lastIndexOf("."), fileName.length);
 
   _pipeStream = (path, writeStream) =>
     new Promise((resolve) => {
@@ -63,7 +62,7 @@ class FileService {
   };
   verify = (file) => {
     return new Promise(async (resolve, reject) => {
-      const { fileId, fileHash, chunkSize, fileSize } = file;
+      const { fileId, fileHash, chunkSize, fileSize, parentId, userId, fileName } = file;
       let result = {};
       try {
         // 重传恢复
@@ -75,7 +74,7 @@ class FileService {
               data: { shouldUpload: false },
               msg: "文件上传完成",
             };
-            this.merge({ fileId, fileHash, chunkSize });
+            this.merge({ fileId, fileHash, chunkSize, parentId, userId, fileName });
           } else {
             result = {
               data: {
@@ -104,7 +103,7 @@ class FileService {
               data: { shouldUpload: false },
               msg: "文件上传完成",
             };
-            this.merge({ fileId, fileHash, chunkSize });
+            this.merge({ fileId, fileHash, chunkSize, parentId, userId, fileName });
           } else {
             result = {
               data: {
@@ -178,16 +177,34 @@ class FileService {
   merge = (file) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const { fileHash, chunkSize, fileId } = file;
+        const { fileHash, chunkSize, fileId, parentId, userId, fileName } = file;
         const filePath = path.resolve(UPLOAD_FILE_DIR, `${fileHash}`); // 获取组装文件输出地址
         // 不存在【hash】文件，有【hash】文件目录就合并
         if (!(fse.existsSync(filePath) && fse.statSync(filePath).isFile())) {
           await this._mergeFileChunk(filePath, fileHash, chunkSize);
         }
         await this.fileDao.updateFileUploaded({ fileId });
+        await this.fileDao.addUserFile({ fileId, fileName, parentId, userId });
+
         resolve({
           data: null,
           message: "文件上传成功",
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  };
+  list = (file) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log(file);
+        const { parentId, userId } = file;
+        const files = await this.fileDao.getFileList({ parentId, userId });
+
+        resolve({
+          data: files,
+          message: "获取文件列表成功",
         });
       } catch (err) {
         reject(err);

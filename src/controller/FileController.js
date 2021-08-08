@@ -65,6 +65,27 @@ class FileController {
       };
     }
   };
+  list = async (ctx) => {
+    const req = ctx.request;
+    const data = req.body;
+    const [res, err] = await handlePromise(this.fileService.list(data));
+    if (err) {
+      return {
+        code: 500,
+        data: null,
+        message: `获取文件列表失败【${err}】`,
+        success: false,
+      };
+    } else {
+      return {
+        code: 200,
+        data: res.data,
+        message: res.msg,
+        // todo 删掉success字段
+        success: true,
+      };
+    }
+  };
 }
 
 export default FileController;

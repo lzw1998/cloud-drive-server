@@ -42,4 +42,9 @@ export default [
     path: "/merge",
     func: mapping(fileController.merge),
   },
+  {
+    method: "POST",
+    path: "/file/list",
+    func: mapping(fileController.list),
+  },
 ];
