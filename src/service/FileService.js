@@ -151,7 +151,7 @@ class FileService {
           }
 
           // 切片目录不存在，创建切片目录
-          if (!fse.existsSync(filePath)) {
+          if (!fse.existsSync(chunkDir)) {
             await fse.mkdirs(chunkDir);
           }
           // fs-extra 专用方法，类似 fs.rename 并且跨平台
