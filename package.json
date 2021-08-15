@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=developement yarn run nodemon --exec babel-node --inspect index.js"
   },

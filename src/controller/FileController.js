@@ -1,8 +1,10 @@
 import FileService from "../service/FileService";
+import ThumbnailService from "../service/ThumbnailService";
 import { handlePromise } from "../utils/core";
 
 class FileController {
   fileService = new FileService();
+  thumbnailService = new ThumbnailService();
   verify = async (ctx) => {
     const req = ctx.request;
     const data = req.body;
@@ -83,6 +85,29 @@ class FileController {
         message: res.msg,
         // todo 删掉success字段
         success: true,
+      };
+    }
+  };
+  thumbnail = async (ctx) => {
+    const req = ctx.request;
+    const data = req.body;
+    const [thumbnail, err] = await handlePromise(
+      this.thumbnailService.thumbnail(data)
+    );
+    if (err) {
+      return {
+        data: {
+          code: 500,
+          data: null,
+          message: `获取缩略图失败【${err}】`,
+          success: false,
+        },
+        contentType: "application/json",
+      };
+    } else {
+      return {
+        data: thumbnail.file,
+        contentType: thumbnail.contentType,
       };
     }
   };

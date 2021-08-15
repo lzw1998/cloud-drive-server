@@ -1,4 +1,3 @@
-import { Schema, STATES } from "mongoose";
 import BaseSchema from "./base";
 import { mongoClient } from "../index";
 const fileSchema = new BaseSchema({
@@ -12,6 +11,7 @@ const fileSchema = new BaseSchema({
   upload_at: Number,
   update_at: Number,
   is_uploaded: Boolean,
+  is_thumbnailed: Boolean,
 });
 const userFileSchema = new BaseSchema({
   type: String,
@@ -28,4 +28,8 @@ userFileSchema.virtual("file", {
 });
 
 export const File = mongoClient.model("File", fileSchema, "file");
-export const UserFile = mongoClient.model("UserFile", userFileSchema, "user_file");
+export const UserFile = mongoClient.model(
+  "UserFile",
+  userFileSchema,
+  "user_file"
+);

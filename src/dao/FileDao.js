@@ -3,19 +3,37 @@ import { toHump, extractExt, matchFileType } from "../utils/core";
 
 class FileDao {
   // 根据fileHash和fileSize查找文件信息
-  findFileByFileId = (fileId) => {
+  findFileByFileId = (fileId, select) => {
     return new Promise((resolve, reject) => {
-      File.findOne({ _id: fileId }, (err, doc) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(toHump(doc));
-      });
+      if (select && select != "") {
+        File.findById({ _id: fileId }, select, (err, doc) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(toHump(doc));
+        });
+      } else {
+        File.findById({ _id: fileId }, (err, doc) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(toHump(doc));
+        });
+      }
     });
   };
 
   // 添加新文件信息
-  addNewFile = ({ fileId, fileHash, fileName, fileSize, contentType, chunkSize, uploadAt, updateAt }) => {
+  addNewFile = ({
+    fileId,
+    fileHash,
+    fileName,
+    fileSize,
+    contentType,
+    chunkSize,
+    uploadAt,
+    updateAt,
+  }) => {
     return new Promise((resolve, reject) => {
       File.create(
         {
@@ -80,6 +98,21 @@ class FileDao {
           console.log(doc);
           resolve(doc);
         });
+    });
+  };
+  updateFileThumbnail = ({ fileId }) => {
+    return new Promise((resolve, reject) => {
+      File.updateOne(
+        { _id: fileId },
+        { is_thumbnailed: true },
+        {},
+        (err, doc) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(doc);
+        }
+      );
     });
   };
 }

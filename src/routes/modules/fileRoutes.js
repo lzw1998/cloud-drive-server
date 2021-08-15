@@ -1,4 +1,4 @@
-import { mapping } from "../../utils/core";
+import { mapping, staticMapping } from "../../utils/core";
 import FileController from "../../controller/FileController";
 
 const fileController = new FileController();
@@ -27,6 +27,11 @@ const fileController = new FileController();
 // };
 
 export default [
+  {
+    method: "POST",
+    path: "/thumbnail",
+    func: staticMapping(fileController.thumbnail),
+  },
   {
     method: "POST",
     path: "/verify",
