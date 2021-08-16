@@ -49,11 +49,7 @@ class ThumbnailService {
   thumbnail = ({ fileId }) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const { doc } = await this.fileDao.findFileByFileId(
-          fileId,
-          "file_hash content_type"
-        );
-        console.log("doc：", doc.fileHash);
+        const { doc } = await this.fileDao.findFileByFileId(fileId, "file_hash content_type", { is_thumbnailed: true });
         if (doc.fileHash) {
           const filePath = path.resolve(OUTPUT_THUMBNAIL_DIR, doc.fileHash);
           const file = fse.readFileSync(filePath);

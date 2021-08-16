@@ -231,7 +231,6 @@ class FileService {
   list = (file) => {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log(file);
         const { parentId, userId } = file;
         const files = await this.fileDao.getFileList({ parentId, userId });
 

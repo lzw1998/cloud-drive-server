@@ -28,8 +28,4 @@ userFileSchema.virtual("file", {
 });
 
 export const File = mongoClient.model("File", fileSchema, "file");
-export const UserFile = mongoClient.model(
-  "UserFile",
-  userFileSchema,
-  "user_file"
-);
+export const UserFile = mongoClient.model("UserFile", userFileSchema, "user_file");

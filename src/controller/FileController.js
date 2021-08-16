@@ -90,10 +90,7 @@ class FileController {
   };
   thumbnail = async (ctx) => {
     const req = ctx.request;
-    const data = req.body;
-    const [thumbnail, err] = await handlePromise(
-      this.thumbnailService.thumbnail(data)
-    );
+    const [thumbnail, err] = await handlePromise(this.thumbnailService.thumbnail(req.query));
     if (err) {
       return {
         data: {

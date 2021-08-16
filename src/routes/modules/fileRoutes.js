@@ -28,7 +28,7 @@ const fileController = new FileController();
 
 export default [
   {
-    method: "POST",
+    method: "GET",
     path: "/thumbnail",
     func: staticMapping(fileController.thumbnail),
   },

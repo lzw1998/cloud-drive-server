@@ -1,2 +1,2 @@
 const data = {};
-console.log(data.code || 200);
+console.log({ id: 123, ...data });

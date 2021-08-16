@@ -1,6 +1,5 @@
 // 处理异常，await时不用try catch
-export const handlePromise = (promise) =>
-  promise.then((data) => [data, null]).catch((err) => [null, err]);
+export const handlePromise = (promise) => promise.then((data) => [data, null]).catch((err) => [null, err]);
 
 // 处理请求路径和controller映射
 export const mapping = (func) => {
@@ -16,7 +15,6 @@ export const staticMapping = (func) => {
   return async (ctx) => {
     const { data, contentType } = await func(ctx);
     ctx.set("content-type", contentType);
-    console.log("data:", data);
     ctx.response.status = data.code || 200;
     ctx.body = data;
   };
@@ -66,18 +64,7 @@ export function matchFileType(suffix) {
     return result;
   }
   // 图片格式
-  const imglist = [
-    "png",
-    "jpg",
-    "jpeg",
-    "bmp",
-    "gif",
-    "PNG",
-    "JPG",
-    "JPEG",
-    "BMP",
-    "GIF",
-  ];
+  const imglist = ["png", "jpg", "jpeg", "bmp", "gif", "PNG", "JPG", "JPEG", "BMP", "GIF"];
   // 进行图片匹配
   result = imglist.some((item) => item == suffix);
   if (result) {
