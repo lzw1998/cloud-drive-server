@@ -1,5 +1,5 @@
 import { File, UserFile } from "./models/file";
-import { toHump, extractExt, matchFileType } from "../utils/core";
+import { toHump, extractExt } from "../utils/core";
 
 class FileDao {
   // 根据fileHash和fileSize查找文件信息
@@ -38,6 +38,7 @@ class FileDao {
           upload_at: uploadAt,
           update_at: updateAt,
           is_uploaded: false,
+          is_thumbnailed: false,
         },
         (err, doc) => {
           if (err) {
@@ -59,12 +60,12 @@ class FileDao {
       });
     });
   };
-  addUserFile = ({ fileId, fileName, parentId, userId, type }) => {
+  addUserFile = ({ fileId, parentId, userId, type }) => {
     return new Promise((resolve, reject) => {
       UserFile.create(
         {
           file_id: fileId,
-          type: type ? type : matchFileType(extractExt(fileName)),
+          type: type,
           parent_id: parentId,
           user_id: userId,
           is_recycled: false,

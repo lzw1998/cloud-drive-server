@@ -5,6 +5,7 @@ import fse from "fs-extra";
 
 import FileDao from "../dao/FileDao";
 import ThumbnailService from "./ThumbnailService";
+import { matchFileType, extractExt } from "../utils/core";
 
 const UPLOAD_FILE_DIR = path.resolve(__dirname, "..", "target/files"); // 大文件存储目录
 const UPLOAD_CHUNK_DIR = path.resolve(__dirname, "..", "target/chunks"); // 大文件存储缓存块目录
@@ -63,23 +64,12 @@ class FileService {
   };
   verify = (file) => {
     return new Promise(async (resolve, reject) => {
-      const {
-        fileId,
-        fileHash,
-        chunkSize,
-        fileSize,
-        parentId,
-        userId,
-        fileName,
-      } = file;
+      const { fileId, fileHash, chunkSize, fileSize, parentId, userId, fileName } = file;
       let result = {};
       try {
         // 重传恢复
         if (fileId !== "") {
-          const { doc } = await this.fileDao.findFileByFileId(
-            fileId,
-            "is_uploaded"
-          ); // 判断文件是否已经有一份上传成功并在服务器了
+          const { doc } = await this.fileDao.findFileByFileId(fileId, "is_uploaded"); // 判断文件是否已经有一份上传成功并在服务器了
           if (doc.isUploaded) {
             // 文件已经在服务器上传完成
             result = {
@@ -117,10 +107,7 @@ class FileService {
           const filePath = path.resolve(UPLOAD_FILE_DIR, fileHash);
 
           // 空文件或文件存在直接返回
-          if (
-            fileSize === 0 ||
-            (fse.existsSync(filePath) && fse.statSync(filePath).isFile())
-          ) {
+          if (fileSize === 0 || (fse.existsSync(filePath) && fse.statSync(filePath).isFile())) {
             result = {
               data: { shouldUpload: false },
               msg: "文件上传完成",
@@ -206,18 +193,19 @@ class FileService {
   merge = (file) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const { fileHash, chunkSize, fileId, parentId, userId, fileName } =
-          file;
+        const { fileHash, chunkSize, fileId, parentId, userId, fileName } = file;
         const filePath = path.resolve(UPLOAD_FILE_DIR, `${fileHash}`); // 获取组装文件输出地址
         // 不存在【hash】文件，有【hash】文件目录就合并
         if (!(fse.existsSync(filePath) && fse.statSync(filePath).isFile())) {
           await this._mergeFileChunk(filePath, fileHash, chunkSize);
         }
         await this.fileDao.updateFileUploaded({ fileId });
-        await this.fileDao.addUserFile({ fileId, fileName, parentId, userId });
-
-        await this.thumbnailService.createThumbnail(fileHash, 25);
-        await this.fileDao.updateFileThumbnail({ fileId });
+        const type = matchFileType(extractExt(fileName));
+        await this.fileDao.addUserFile({ fileId, type, parentId, userId });
+        if (type === "image") {
+          await this.thumbnailService.createThumbnail(fileHash, 25);
+          await this.fileDao.updateFileThumbnail({ fileId });
+        }
 
         resolve({
           data: null,

@@ -1,6 +1,6 @@
 import path from "path";
 import fse from "fs-extra";
-import Jimp from "jimp";
+import Jimp from "jimp"; // 支持的图片压缩格式 @jpeg @/png @bmp @tiff @gif
 import FileDao from "../dao/FileDao";
 
 const INPUT_IMAGE_DIR = path.resolve(__dirname, "..", "target/files"); // 输入图片修改的目录

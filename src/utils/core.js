@@ -100,7 +100,7 @@ export function matchFileType(suffix) {
     return result;
   }
   // 匹配 ppt
-  const pptlist = ["ppt"];
+  const pptlist = ["ppt", "pptx"];
   result = pptlist.some((item) => item == suffix);
   if (result) {
     result = "ppt";
