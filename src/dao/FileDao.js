@@ -5,21 +5,12 @@ class FileDao {
   // 根据fileHash和fileSize查找文件信息
   findFileByFileId = (fileId, select = null, query = null) => {
     return new Promise((resolve, reject) => {
-      if (select && select != "") {
-        File.findById({ _id: fileId, ...query }, select, (err, doc) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(toHump(doc));
-        });
-      } else {
-        File.findById({ _id: fileId }, (err, doc) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(toHump(doc));
-        });
-      }
+      File.findOne({ _id: fileId, ...query }, select, (err, doc) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(doc);
+      });
     });
   };
 

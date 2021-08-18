@@ -9,7 +9,6 @@ import { matchFileType, extractExt } from "../utils/core";
 
 const UPLOAD_FILE_DIR = path.resolve(__dirname, "..", "target/files"); // 大文件存储目录
 const UPLOAD_CHUNK_DIR = path.resolve(__dirname, "..", "target/chunks"); // 大文件存储缓存块目录
-
 class FileService {
   fileDao = new FileDao();
   thumbnailService = new ThumbnailService();
@@ -69,12 +68,12 @@ class FileService {
       try {
         // 重传恢复
         if (fileId !== "") {
-          const { doc } = await this.fileDao.findFileByFileId(fileId, "is_uploaded"); // 判断文件是否已经有一份上传成功并在服务器了
-          if (doc.isUploaded) {
+          const doc = await this.fileDao.findFileByFileId(fileId, "is_uploaded"); // 判断文件是否已经有一份上传成功并在服务器了
+          const fileInfo = doc.toObject();
+          if (fileInfo.isUploaded) {
             // 文件已经在服务器上传完成
             result = {
               data: { shouldUpload: false },
-              msg: "文件上传完成",
             };
             this.merge({
               fileId,
@@ -85,13 +84,13 @@ class FileService {
               fileName,
             });
           } else {
+            // 文件已添加，尚未上传完成
             result = {
               data: {
                 shouldUpload: true,
                 // 文件未上传，但有可能已上传了部分切片，所以返回的是已上传的所有切片地址
                 uploadedList: await this._createUploadedList(fileHash),
               },
-              msg: "文件已添加，尚未上传完成",
             };
           }
         } else {
@@ -108,9 +107,9 @@ class FileService {
 
           // 空文件或文件存在直接返回
           if (fileSize === 0 || (fse.existsSync(filePath) && fse.statSync(filePath).isFile())) {
+            // 文件上传完成
             result = {
               data: { shouldUpload: false },
-              msg: "文件上传完成",
             };
             this.merge({
               fileId,
@@ -121,13 +120,13 @@ class FileService {
               fileName,
             });
           } else {
+            // 文件已添加，尚未上传完成
             result = {
               data: {
                 shouldUpload: true,
                 uploadedList: await this._createUploadedList(fileHash),
                 fileId,
               },
-              msg: "文件已添加，尚未上传完成",
             };
           }
         }
@@ -160,9 +159,9 @@ class FileService {
 
           // 文件存在直接返回
           if (fse.existsSync(filePath) && fse.statSync(filePath).isFile()) {
+            // 切片上传成功
             return resolve({
               data: null,
-              msg: `切片上传成功`,
             });
           }
 
@@ -180,9 +179,9 @@ class FileService {
            * 对于这个系统临时存放地址也可以进行更改，通过 koa-bodyparser 配置时的参数
            * */
           await fse.move(chunk.path, path.resolve(chunkDir, hash));
+          // 切片上传成功
           return resolve({
             data: null,
-            msg: `切片上传成功`,
           });
         });
       } catch (err) {
@@ -203,13 +202,24 @@ class FileService {
         const type = matchFileType(extractExt(fileName));
         await this.fileDao.addUserFile({ fileId, type, parentId, userId });
         if (type === "image") {
-          await this.thumbnailService.createThumbnail(fileHash, 25);
-          await this.fileDao.updateFileThumbnail({ fileId });
+          const doc = await this.fileDao.findFileByFileId(fileId, "file_size is_thumbnailed", {
+            is_uploaded: true,
+          });
+          const fileInfo = doc.toObject();
+          if (!fileInfo.isThumbnailed) {
+            this.thumbnailService
+              .createThumbnail(fileHash, 25, fileInfo.fileSize)
+              .then(async () => {
+                await this.fileDao.updateFileThumbnail({ fileId });
+              })
+              .catch((err) => {
+                console.log("err:", err);
+              });
+          }
         }
-
+        // 文件上传成功
         resolve({
           data: null,
-          message: "文件上传成功",
         });
       } catch (err) {
         reject(err);
@@ -220,14 +230,42 @@ class FileService {
     return new Promise(async (resolve, reject) => {
       try {
         const { parentId, userId } = file;
-        const files = await this.fileDao.getFileList({ parentId, userId });
-
+        const thumbnailTypes = ["image"];
+        let doc = await this.fileDao.getFileList({ parentId, userId });
+        const files = doc.map((item) => {
+          let rawfile = item.toObject();
+          if (thumbnailTypes.indexOf(rawfile.type) === -1) return rawfile;
+          if (rawfile.file.isThumbnailed)
+            return {
+              ...rawfile,
+              thumbnail: `${global.OSS_HOST}/thumbnail?fileHash=${rawfile.file.fileHash}&contentType=${rawfile.file.contentType}`,
+            };
+          else
+            return {
+              ...rawfile,
+              thumbnail: `${global.OSS_HOST}/image?fileHash=${rawfile.file.fileHash}&contentType=${rawfile.file.contentType}`,
+            };
+        });
+        //获取文件列表成功
         resolve({
           data: files,
-          message: "获取文件列表成功",
         });
       } catch (err) {
         reject(err);
+      }
+    });
+  };
+  image = ({ fileHash, contentType }) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (fileHash && contentType) {
+          const filePath = path.resolve(UPLOAD_FILE_DIR, fileHash);
+          const file = fse.readFileSync(filePath);
+          resolve({ file, contentType });
+        } else resolve();
+      } catch (error) {
+        console.log("error: ", error);
+        reject(error);
       }
     });
   };

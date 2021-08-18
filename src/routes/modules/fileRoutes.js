@@ -33,6 +33,11 @@ export default [
     func: staticMapping(fileController.thumbnail),
   },
   {
+    method: "GET",
+    path: "/image",
+    func: staticMapping(fileController.image),
+  },
+  {
     method: "POST",
     path: "/verify",
     func: mapping(fileController.verify),

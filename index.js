@@ -4,12 +4,19 @@ import bodyParser from "koa-bodyparser";
 import cors from "koa2-cors";
 import routes from "./src/routes";
 import corsConfig from "./config/cors";
+import globals from "./config/global";
+import staticResource from "koa-static";
 import { mongoClient } from "./src/dao";
 
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV !== "developement";
 console.log(`isProduction: ${isProduction}`);
 const app = new Koa();
+
+// 添加全局变量
+for (let key in globals) {
+  global[key] = globals[key];
+}
 
 // 日志
 !isProduction ? app.use(logger()) : "";
@@ -21,6 +28,8 @@ app.use(cors(corsConfig));
 app.use(bodyParser());
 // add router middleware:
 app.use(routes());
+// add static
+app.use(staticResource(__dirname + "/static"));
 
 /**
  * 监听Mongo连接

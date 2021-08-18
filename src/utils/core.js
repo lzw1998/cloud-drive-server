@@ -57,70 +57,32 @@ export const extractExt = (fileName) => {
 };
 
 export function matchFileType(suffix) {
-  let result = "";
-  // fileName无后缀返回 false
-  if (!suffix) {
-    result = false;
-    return result;
+  console.log(suffix);
+  const match = {
+    // 多媒体文件
+    image: ["png", "jpg", "jpeg", "bmp", "gif", "PNG", "JPG", "JPEG", "BMP", "GIF"],
+    audio: ["mp3", "wav", "wmv"],
+    video: ["mp4", "m2v", "mkv"],
+    // 办公
+    pdf: ["pdf"],
+    word: ["doc", "docx"],
+    excel: ["xls", "xlsx"],
+    ppt: ["ppt", "pptx"],
+    // 压缩包
+    zip: ["7z", "zip", "rar", "apk"],
+    // adobe
+    ai: ["ai"],
+    psd: ["psd"],
+    // code
+    js: ["js", "jsx", "vue"],
+    css: ["css", "less", "sass", "scss"],
+    html: ["html"],
+    xml: ["xml"],
+    json: ["json"],
+    text: ["text"],
+  };
+  for (let key in match) {
+    if (match[key].indexOf(suffix) !== -1) return key;
   }
-  // 图片格式
-  const imglist = ["png", "jpg", "jpeg", "bmp", "gif", "PNG", "JPG", "JPEG", "BMP", "GIF"];
-  // 进行图片匹配
-  result = imglist.some((item) => item == suffix);
-  if (result) {
-    result = "image";
-    return result;
-  }
-  // 匹配txt
-  const txtlist = ["txt", "js"];
-  result = txtlist.some((item) => item == suffix);
-  if (result) {
-    result = "text";
-    return result;
-  }
-  // 匹配 excel
-  const excelist = ["xls", "xlsx"];
-  result = excelist.some((item) => item == suffix);
-  if (result) {
-    result = "excel";
-    return result;
-  }
-  // 匹配 word
-  const wordlist = ["doc", "docx"];
-  result = wordlist.some((item) => item == suffix);
-  if (result) {
-    result = "word";
-    return result;
-  }
-  // 匹配 pdf
-  const pdflist = ["pdf"];
-  result = pdflist.some((item) => item == suffix);
-  if (result) {
-    result = "pdf";
-    return result;
-  }
-  // 匹配 ppt
-  const pptlist = ["ppt", "pptx"];
-  result = pptlist.some((item) => item == suffix);
-  if (result) {
-    result = "ppt";
-    return result;
-  }
-  // 匹配 视频
-  const videolist = ["mp4", "m2v", "mkv"];
-  result = videolist.some((item) => item == suffix);
-  if (result) {
-    result = "video";
-    return result;
-  }
-  // 匹配 音频
-  const radiolist = ["mp3", "wav", "wmv"];
-  result = radiolist.some((item) => item == suffix);
-  if (result) {
-    result = "audio";
-    return result;
-  }
-  // 其他 文件类型
-  result = "other";
-  return result;
+  return "other";
 }

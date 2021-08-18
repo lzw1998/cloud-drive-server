@@ -20,7 +20,6 @@ class FileController {
       return {
         code: 200,
         data: res.data,
-        message: res.msg,
         // todo 删掉success字段
         success: true,
       };
@@ -40,7 +39,6 @@ class FileController {
       return {
         code: 200,
         data: res.data,
-        message: res.msg,
         // todo 删掉success字段
         success: true,
       };
@@ -61,7 +59,6 @@ class FileController {
       return {
         code: 200,
         data: res.data,
-        message: res.msg,
         // todo 删掉success字段
         success: true,
       };
@@ -82,7 +79,6 @@ class FileController {
       return {
         code: 200,
         data: res.data,
-        message: res.msg,
         // todo 删掉success字段
         success: true,
       };
@@ -105,6 +101,26 @@ class FileController {
       return {
         data: thumbnail.file,
         contentType: thumbnail.contentType,
+      };
+    }
+  };
+  image = async (ctx) => {
+    const req = ctx.request;
+    const [image, err] = await handlePromise(this.fileService.image(req.query));
+    if (err) {
+      return {
+        data: {
+          code: 500,
+          data: null,
+          message: `获取图片失败【${err}】`,
+          success: false,
+        },
+        contentType: "application/json",
+      };
+    } else {
+      return {
+        data: image.file,
+        contentType: image.contentType,
       };
     }
   };
