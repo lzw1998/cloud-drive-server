@@ -30,6 +30,7 @@ class FileDao {
           update_at: updateAt,
           is_uploaded: false,
           is_thumbnailed: false,
+          has_thumbnail: false,
         },
         (err, doc) => {
           if (err) {
@@ -82,9 +83,9 @@ class FileDao {
         });
     });
   };
-  updateFileThumbnail = ({ fileId }) => {
+  updateFileThumbnail = ({ fileId }, update) => {
     return new Promise((resolve, reject) => {
-      File.updateOne({ _id: fileId }, { is_thumbnailed: true }, {}, (err, doc) => {
+      File.updateOne({ _id: fileId }, { ...update }, {}, (err, doc) => {
         if (err) {
           reject(err);
         }

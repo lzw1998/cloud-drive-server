@@ -199,7 +199,8 @@ class FileService {
           await this._mergeFileChunk(filePath, fileHash, chunkSize);
         }
         await this.fileDao.updateFileUploaded({ fileId });
-        const type = matchFileType(extractExt(fileName));
+        const fileExt = extractExt(fileName);
+        const type = matchFileType(fileExt);
         await this.fileDao.addUserFile({ fileId, type, parentId, userId });
         if (type === "image") {
           const doc = await this.fileDao.findFileByFileId(fileId, "file_size is_thumbnailed", {
@@ -210,10 +211,13 @@ class FileService {
             this.thumbnailService
               .createThumbnail(fileHash, 25, fileInfo.fileSize)
               .then(async () => {
-                await this.fileDao.updateFileThumbnail({ fileId });
+                await this.fileDao.updateFileThumbnail({ fileId }, { has_thumbnail: true });
               })
               .catch((err) => {
                 console.log("err:", err);
+              })
+              .finally(async () => {
+                await this.fileDao.updateFileThumbnail({ fileId }, { is_thumbnailed: true });
               });
           }
         }
@@ -235,16 +239,17 @@ class FileService {
         const files = doc.map((item) => {
           let rawfile = item.toObject();
           if (thumbnailTypes.indexOf(rawfile.type) === -1) return rawfile;
-          if (rawfile.file.isThumbnailed)
+          if (rawfile.file.isThumbnailed && rawfile.file.hasThumbnail)
             return {
               ...rawfile,
               thumbnail: `${global.OSS_HOST}/thumbnail?fileHash=${rawfile.file.fileHash}&contentType=${rawfile.file.contentType}`,
             };
-          else
+          else if (rawfile.file.isThumbnailed && !rawfile.file.hasThumbnail)
             return {
               ...rawfile,
               thumbnail: `${global.OSS_HOST}/image?fileHash=${rawfile.file.fileHash}&contentType=${rawfile.file.contentType}`,
             };
+          else return rawfile;
         });
         //获取文件列表成功
         resolve({

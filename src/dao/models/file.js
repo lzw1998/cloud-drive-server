@@ -12,6 +12,7 @@ const fileSchema = new BaseSchema({
   update_at: Number,
   is_uploaded: Boolean,
   is_thumbnailed: Boolean,
+  has_thumbnail: Boolean,
 });
 const userFileSchema = new BaseSchema({
   type: String,

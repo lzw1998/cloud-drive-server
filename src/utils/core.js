@@ -60,7 +60,7 @@ export function matchFileType(suffix) {
   console.log(suffix);
   const match = {
     // 多媒体文件
-    image: ["png", "jpg", "jpeg", "bmp", "gif", "PNG", "JPG", "JPEG", "BMP", "GIF"],
+    image: ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "tif"],
     audio: ["mp3", "wav", "wmv"],
     video: ["mp4", "m2v", "mkv"],
     // 办公
