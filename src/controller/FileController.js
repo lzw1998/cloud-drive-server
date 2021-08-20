@@ -20,7 +20,6 @@ class FileController {
       return {
         code: 200,
         data: res.data,
-        // todo 删掉success字段
         success: true,
       };
     }
@@ -39,7 +38,6 @@ class FileController {
       return {
         code: 200,
         data: res.data,
-        // todo 删掉success字段
         success: true,
       };
     }
@@ -59,15 +57,14 @@ class FileController {
       return {
         code: 200,
         data: res.data,
-        // todo 删掉success字段
         success: true,
       };
     }
   };
-  list = async (ctx) => {
+  fileList = async (ctx) => {
     const req = ctx.request;
     const data = req.body;
-    const [res, err] = await handlePromise(this.fileService.list(data));
+    const [res, err] = await handlePromise(this.fileService.fileList(data));
     if (err) {
       return {
         code: 500,
@@ -79,7 +76,6 @@ class FileController {
       return {
         code: 200,
         data: res.data,
-        // todo 删掉success字段
         success: true,
       };
     }
@@ -121,6 +117,25 @@ class FileController {
       return {
         data: image.file,
         contentType: image.contentType,
+      };
+    }
+  };
+  createFoloder = async (ctx) => {
+    const req = ctx.request;
+    const data = req.body;
+    const [res, err] = await handlePromise(this.fileService.createFoloder(data));
+    if (err) {
+      return {
+        code: 500,
+        data: null,
+        message: `文件夹添加失败【${err}】`,
+        success: false,
+      };
+    } else {
+      return {
+        code: 200,
+        data: res.data,
+        success: true,
       };
     }
   };

@@ -79,7 +79,7 @@ export function matchFileType(suffix) {
     html: ["html"],
     xml: ["xml"],
     json: ["json"],
-    text: ["text"],
+    text: ["txt"],
   };
   for (let key in match) {
     if (match[key].indexOf(suffix) !== -1) return key;

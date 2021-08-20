@@ -138,7 +138,7 @@ class FileService {
     });
   };
   upload = (req) => {
-    // todo 并发同时上传同样的文件怎么办？
+    // TODO 并发同时上传同样的文件怎么办？
     const multipart = new multiparty.Form();
 
     multipart.on("error", function (err) {
@@ -201,7 +201,16 @@ class FileService {
         await this.fileDao.updateFileUploaded({ fileId });
         const fileExt = extractExt(fileName);
         const type = matchFileType(fileExt);
-        await this.fileDao.addUserFile({ fileId, type, parentId, userId });
+        const curTime = new Date();
+        await this.fileDao.addUserFile({
+          fileId,
+          type,
+          parentId,
+          userId,
+          fileName,
+          createdAt: curTime.getTime(),
+          updateAt: curTime.getTime(),
+        });
         if (type === "image") {
           const doc = await this.fileDao.findFileByFileId(fileId, "file_size is_thumbnailed", {
             is_uploaded: true,
@@ -230,27 +239,39 @@ class FileService {
       }
     });
   };
-  list = (file) => {
+  fileList = (params) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const { parentId, userId } = file;
+        const { parentId, userId } = params;
         const thumbnailTypes = ["image"];
         let doc = await this.fileDao.getFileList({ parentId, userId });
-        const files = doc.map((item) => {
-          let rawfile = item.toObject();
-          if (thumbnailTypes.indexOf(rawfile.type) === -1) return rawfile;
-          if (rawfile.file.isThumbnailed && rawfile.file.hasThumbnail)
-            return {
-              ...rawfile,
-              thumbnail: `${global.OSS_HOST}/thumbnail?fileHash=${rawfile.file.fileHash}&contentType=${rawfile.file.contentType}`,
-            };
-          else if (rawfile.file.isThumbnailed && !rawfile.file.hasThumbnail)
-            return {
-              ...rawfile,
-              thumbnail: `${global.OSS_HOST}/image?fileHash=${rawfile.file.fileHash}&contentType=${rawfile.file.contentType}`,
-            };
-          else return rawfile;
-        });
+        const files = doc
+          .map((item) => {
+            if (item.type === "folder") return item;
+            let {
+              file: { id, ...fileInfo },
+              ...userFile
+            } = item.toObject();
+            if (thumbnailTypes.indexOf(userFile.type) === -1) return { ...fileInfo, ...userFile };
+            if (fileInfo.isThumbnailed && fileInfo.hasThumbnail)
+              return {
+                ...fileInfo,
+                ...userFile,
+                thumbnail: `${global.OSS_HOST}/thumbnail?fileHash=${fileInfo.fileHash}&contentType=${fileInfo.contentType}`,
+              };
+            else if (fileInfo.isThumbnailed && !fileInfo.hasThumbnail)
+              return {
+                ...fileInfo,
+                ...userFile,
+                thumbnail: `${global.OSS_HOST}/image?fileHash=${fileInfo.fileHash}&contentType=${fileInfo.contentType}`,
+              };
+            else return { ...fileInfo, ...userFile };
+          })
+          .sort((a, b) => {
+            if (a.type === "folder" && b.type !== "folder") return -1;
+            else if (a.type !== "folder" && b.type === "folder") return 1;
+            else return 0;
+          });
         //获取文件列表成功
         resolve({
           data: files,
@@ -271,6 +292,28 @@ class FileService {
       } catch (error) {
         console.log("error: ", error);
         reject(error);
+      }
+    });
+  };
+  createFoloder = (params) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { parentId, userId, name } = params;
+        const curTime = new Date();
+        await this.fileDao.addUserFile({
+          type: "folder",
+          parentId,
+          userId,
+          fileName: name,
+          createdAt: curTime.getTime(),
+          updateAt: curTime.getTime(),
+        });
+        // 文件上传成功
+        resolve({
+          data: null,
+        });
+      } catch (err) {
+        reject(err);
       }
     });
   };

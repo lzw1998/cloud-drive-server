@@ -20,6 +20,9 @@ const userFileSchema = new BaseSchema({
   file_id: String,
   user_id: String,
   is_recycled: Boolean,
+  create_at: Number,
+  update_at: Number,
+  name: String,
 });
 userFileSchema.virtual("file", {
   ref: "File",
