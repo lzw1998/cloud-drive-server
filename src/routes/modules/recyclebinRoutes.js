@@ -7,4 +7,14 @@ export default [
     path: "/recyclebin/list",
     func: mapping(recyclebinController.recyclebinList),
   },
+  {
+    method: "POST",
+    path: "/recyclebin/trash",
+    func: mapping(recyclebinController.trash),
+  },
+  {
+    method: "POST",
+    path: "/recyclebin/restore",
+    func: mapping(recyclebinController.restore),
+  },
 ];

@@ -1,7 +1,6 @@
 import FileService from "../service/FileService";
 import ThumbnailService from "../service/ThumbnailService";
 import { handlePromise } from "../utils/core";
-
 class FileController {
   fileService = new FileService();
   thumbnailService = new ThumbnailService();
@@ -102,6 +101,7 @@ class FileController {
   };
   image = async (ctx) => {
     const req = ctx.request;
+    // TODO .txt 改成.png上传出问题houzhuibianli
     const [image, err] = await handlePromise(this.fileService.image(req.query));
     if (err) {
       return {
@@ -120,6 +120,66 @@ class FileController {
       };
     }
   };
+  // TODO download thumbnail image 这些请求都应该和用户id有关，
+  download = async (ctx) => {
+    const req = ctx.request;
+    const [doc, err] = await handlePromise(this.fileService.download(req.query));
+    if (err) {
+      return {
+        data: {
+          code: 500,
+          data: null,
+          message: `文件下载失败【${err}】`,
+          success: false,
+        },
+      };
+    } else {
+      // const path = `upload/${doc.name}`;
+      return {
+        code: 200,
+        data: doc.data,
+        success: true,
+      };
+    }
+  };
+  getDownloadUrl = async (ctx) => {
+    const req = ctx.request;
+    const data = req.body;
+    const [res, err] = await handlePromise(this.fileService.getDownloadUrl(data));
+    if (err) {
+      return {
+        code: 500,
+        data: null,
+        message: `获取文件下载链接失败【${err}】`,
+        success: false,
+      };
+    } else {
+      return {
+        code: 200,
+        data: res.data,
+        success: true,
+      };
+    }
+  };
+  multiDownloadUrl = async (ctx) => {
+    const req = ctx.request;
+    const data = req.body;
+    const [res, err] = await handlePromise(this.fileService.multiDownloadUrl(data));
+    if (err) {
+      return {
+        code: 500,
+        data: null,
+        message: `获取多文件下载链接失败【${err}】`,
+        success: false,
+      };
+    } else {
+      return {
+        code: 200,
+        data: res.data,
+        success: true,
+      };
+    }
+  };
   createFoloder = async (ctx) => {
     const req = ctx.request;
     const data = req.body;
@@ -128,7 +188,64 @@ class FileController {
       return {
         code: 500,
         data: null,
-        message: `文件夹添加失败【${err}】`,
+        message: `文件夹创建失败【${err}】`,
+        success: false,
+      };
+    } else {
+      return {
+        code: 200,
+        data: res.data,
+        success: true,
+      };
+    }
+  };
+  getFolderPath = async (ctx) => {
+    const req = ctx.request;
+    const data = req.body;
+    const [res, err] = await handlePromise(this.fileService.getFolderPath(data));
+    if (err) {
+      return {
+        code: 500,
+        data: null,
+        message: `获取文件路径失败【${err}】`,
+        success: false,
+      };
+    } else {
+      return {
+        code: 200,
+        data: res.data,
+        success: true,
+      };
+    }
+  };
+  search = async (ctx) => {
+    const req = ctx.request;
+    const data = req.body;
+    const [res, err] = await handlePromise(this.fileService.search(data));
+    if (err) {
+      return {
+        code: 500,
+        data: null,
+        message: `文件搜索失败【${err}】`,
+        success: false,
+      };
+    } else {
+      return {
+        code: 200,
+        data: res.data,
+        success: true,
+      };
+    }
+  };
+  delete = async (ctx) => {
+    const req = ctx.request;
+    const data = req.body;
+    const [res, err] = await handlePromise(this.fileService.delete(data));
+    if (err) {
+      return {
+        code: 500,
+        data: null,
+        message: `文件删除失败【${err}】`,
         success: false,
       };
     } else {

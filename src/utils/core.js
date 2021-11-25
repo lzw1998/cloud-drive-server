@@ -1,3 +1,6 @@
+import path from "path";
+import send from "koa-send";
+
 // 处理异常，await时不用try catch
 export const handlePromise = (promise) => promise.then((data) => [data, null]).catch((err) => [null, err]);
 
@@ -13,49 +16,74 @@ export const mapping = (func) => {
 // 处理请求路径和controller映射
 export const staticMapping = (func) => {
   return async (ctx) => {
-    const { data, contentType } = await func(ctx);
+    const doc = await func(ctx);
+    const { data, contentType } = doc;
     ctx.set("content-type", contentType);
     ctx.response.status = data.code || 200;
     ctx.body = data;
   };
 };
 
-// 下划线转为驼峰命名
-export const toHump = (obj) => {
-  const result = Array.isArray(obj) ? [] : {};
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const element = obj[key];
-      const index = key.indexOf("_");
-      let newKey = key;
-      if (index === -1 || key.length === 1) {
-        result[key] = element;
+// 处理请求路径和controller映射
+export const downloadMapping = (func) => {
+  return async (ctx, res) => {
+    const { data } = await func(ctx);
+    let filePath = "";
+    if (data.type === "single") {
+      filePath = path.resolve("/src/target/files/", data.fileHash);
+      ctx.response.attachment(data.name);
+      if (data.fileHash) {
+        await send(ctx, filePath);
       } else {
-        const keyArr = key.split("_");
-        const newKeyArr = keyArr
-          .filter((item) => item !== "")
-          .map((item, index) => {
-            if (index === 0) return item;
-            return item.charAt(0).toLocaleUpperCase() + item.slice(1);
-          });
-        newKey = newKeyArr.join("");
-        result[newKey] = element;
+        ctx.body = "";
       }
-
-      if (typeof element === "object" && element !== null) {
-        result[newKey] = toHump(element);
-      }
+    } else if (data.type === "multi") {
+      ctx.response.attachment(data.name);
+      ctx.body = data.archive;
+      data.archive.finalize();
     }
-  }
-  return result;
+  };
 };
 
+export const formatHumpLineTransfer = (data, type = "hump") => {
+  const formatToHump = (value) => {
+    return value.replace(/\_(\w)/g, (_, letter) => letter.toUpperCase());
+  };
+
+  const formatToLine = (value) => {
+    return value.replace(/([A-Z])/g, "_$1").toLowerCase();
+  };
+  let hump = "";
+  let formatTransferKey = (data) => {
+    if (data instanceof Array) {
+      data.forEach((item) => formatTransferKey(item));
+    } else if (data instanceof Object) {
+      for (let key in data) {
+        hump = type === "hump" ? formatToHump(key) : formatToLine(key);
+        data[hump] = data[key];
+        if (key !== hump) {
+          delete data[key];
+        }
+        if (data[hump] instanceof Object) {
+          formatTransferKey(data[hump]);
+        }
+      }
+    } else if (typeof data === "string") {
+      data = type === "hump" ? formatToHump(data) : formatToLine(data);
+    }
+  };
+  formatTransferKey(data);
+  return data;
+};
+
+// 获取文件扩展名
 export const extractExt = (fileName) => {
   if (fileName.lastIndexOf(".") > 0) {
     return fileName.slice(fileName.lastIndexOf(".") + 1, fileName.length);
   } else return "";
 };
 
+// 根据文件扩展名获得文件类型
 export function matchFileType(suffix) {
   console.log(suffix);
   const match = {
@@ -86,3 +114,21 @@ export function matchFileType(suffix) {
   }
   return "other";
 }
+
+// 将字符串转义
+export function escapeRegex(string) {
+  return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+}
+
+// 根据对象属性进行分组
+// export function groupBy(arr, f) {
+//   let groups = {};
+//   arr.forEach((item) => {
+//     let key = JSON.stringify(f(item));
+//     groups[key] = groups[key] || [];
+//     groups[key].push(item);
+//   });
+//   return Object.keys(groups).map((key) => {
+//     return groups[key];
+//   });
+// }

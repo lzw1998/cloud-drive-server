@@ -1,3 +1,4 @@
+import { Schema } from "mongoose";
 import BaseSchema from "./base";
 import { mongoClient } from "../index";
 const fileSchema = new BaseSchema({
@@ -16,13 +17,22 @@ const fileSchema = new BaseSchema({
 });
 const userFileSchema = new BaseSchema({
   type: String,
-  parent_id: String,
+  // TODO DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+  parent_id: {
+    type: Schema.Types.ObjectId,
+    index: true,
+  },
   file_id: String,
   user_id: String,
   is_recycled: Boolean,
   create_at: Number,
   update_at: Number,
   name: String,
+});
+
+const downloadTaskSchema = new BaseSchema({
+  files: [],
+  create_at: Number,
 });
 userFileSchema.virtual("file", {
   ref: "File",
@@ -33,3 +43,4 @@ userFileSchema.virtual("file", {
 
 export const File = mongoClient.model("File", fileSchema, "file");
 export const UserFile = mongoClient.model("UserFile", userFileSchema, "user_file");
+export const DownloadTask = mongoClient.model("DownloadTask", downloadTaskSchema, "download_task");

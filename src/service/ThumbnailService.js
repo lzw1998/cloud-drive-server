@@ -61,16 +61,17 @@ class ThumbnailService {
                 }
               }
               image
-                .background(0xFFFFFFFF)
+                .background(0xffffffff)
                 .resize(200, Jimp.AUTO) // resize
                 .quality(quality); // set JPEG quality
               let newBuffer = await image.getBufferAsync(Jimp.AUTO);
               if (newBuffer.byteLength < originSize) {
                 image.write(outPath, () => {
-                  resolve();
+                  resolve(true);
                 });
               } else {
-                return reject("compressed one largger than original one");
+                console.log("compressed one largger than original one");
+                resolve(false);
               }
             })
             .catch((err) => {

@@ -6,7 +6,7 @@ import mongodbConfig from "../../config/mongodb";
  * 使用 Node 自带 Promise 代替 mongoose 的 Promise,否则会报错
  */
 mongoose.Promise = global.Promise;
-
+mongoose.set("useCreateIndex", true);
 /**
  * 配置 MongoDb options
  */
@@ -40,10 +40,7 @@ function closeMongoClient() {
 }
 
 let mongoClient = mongoose.createConnection(getMongoUrl(), getMongodbConfig());
-export {
-  mongoClient,
-  closeMongoClient,
-};
+export { mongoClient, closeMongoClient };
 
 // let fileSchema = mongoose.Schema(
 //   {
